@@ -7,6 +7,7 @@ set(UTILITY_SOURCE
 
 add_library(utility STATIC ${UTILITY_SOURCE})
 add_library(composable_kernel::utility ALIAS utility)
+set_target_properties(utility PROPERTIES OUTPUT_NAME ck_utility)
 
 target_include_directories(utility PUBLIC
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ck>"

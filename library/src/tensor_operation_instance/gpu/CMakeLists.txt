@@ -121,7 +121,7 @@ ENDFOREACH()
 
 add_library(device_operations STATIC ${CK_DEVICE_INSTANCES})
 add_library(composablekernels::device_operations ALIAS device_operations)
-
+set_target_properties(device_operations PROPERTIES OUTPUT_NAME "ck_device_operations")
 
 set(DEV_OPS_INC_DIRS
     ${PROJECT_SOURCE_DIR}/include/ck/
