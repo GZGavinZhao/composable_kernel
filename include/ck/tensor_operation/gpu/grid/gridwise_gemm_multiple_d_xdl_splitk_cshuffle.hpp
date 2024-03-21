@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2018-2023, Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2018-2024, Advanced Micro Devices, Inc. All rights reserved.
 
 #pragma once
 
@@ -70,7 +70,7 @@ template <typename ADataType,
           index_t CShuffleNXdlPerWavePerShuffle,
           typename CDEBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock,
           index_t CDEShuffleBlockTransferScalarPerVector_NPerBlock,
-          LoopScheduler LoopSched,
+          LoopScheduler LoopSched = make_default_loop_scheduler(),
           PipelineVersion PipelineVer = PipelineVersion::v1>
 struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
 {
@@ -373,7 +373,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
         const auto e_grid_desc_m_n = MakeEGridDescriptor_M_N<ELayout, GemmSpec>(M, N, StrideE);
 
         // check gridwise gemm pipeline
-        const auto num_k_loop = K / KPerBlock;
+        const auto num_k_loop = K / (KPerBlock * KBatch);
 
         if(!GridwiseGemmPipe::IsSupported(num_k_loop))
         {

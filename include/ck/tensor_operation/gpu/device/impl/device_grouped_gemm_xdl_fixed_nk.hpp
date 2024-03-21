@@ -596,15 +596,19 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
 
         float Run(const Argument& arg, const StreamConfig& stream_config = StreamConfig{})
         {
+
+            const auto KPad =
+                GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[0].K_, arg.k_batch_);
+
             bool has_main_k_block_loop = GridwiseGemm::CalculateHasMainKBlockLoop(
-                GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[0].K_, arg.k_batch_));
+                KPad / arg.k_batch_);
 
             for(std::size_t i = 1; i < arg.gemm_desc_kernel_arg_.size(); i++)
             {
-                const auto KPad =
+                const auto KPad_ =
                     GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[i].K_, arg.k_batch_);
 
-                if(GridwiseGemm::CalculateHasMainKBlockLoop(KPad) != has_main_k_block_loop)
+                if(GridwiseGemm::CalculateHasMainKBlockLoop(KPad_ / arg.k_batch_) != has_main_k_block_loop)
                 {
                     throw std::runtime_error("wrong! not all gemm has_main_k_block_loop");
                 }
@@ -730,16 +734,16 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
         {
             // [A|B]BlockTransferSrcVectorDim value define dimension in the block {K0,M,K1} layout,
             // thus we have to adapt it to the {M,K} or {N,K} layout.
-            const auto a_raw_vector_dim = ABlockTransferSrcVectorDim != 1 ? 1 : 0;
-            const auto b_raw_vector_dim = BBlockTransferSrcVectorDim != 1 ? 1 : 0;
+            const auto a_raw_vector_dim = ABlockTransferSrcVectorDim != 2 ? 1 : 0;
+            const auto b_raw_vector_dim = BBlockTransferSrcVectorDim != 2 ? 1 : 0;
 
-            for(index_t i = 0; i < arg.group_count_; ++i)
+            //for(index_t i = 0; i < arg.group_count_; ++i)
             {
-                const auto a_vector_dim = arg.a_mtx_mraw_kraw_[i].At(Number<a_raw_vector_dim>{});
-                const auto b_vector_dim = arg.b_mtx_nraw_kraw_[i].At(Number<b_raw_vector_dim>{});
+                const auto a_vector_dim = arg.a_mtx_mraw_kraw_[0].At(Number<a_raw_vector_dim>{});
+                const auto b_vector_dim = arg.b_mtx_nraw_kraw_[0].At(Number<b_raw_vector_dim>{});
 
-                supported = supported & (a_vector_dim % ABlockTransferSrcScalarPerVector == 0);
-                supported = supported & (b_vector_dim % BBlockTransferSrcScalarPerVector == 0);
+                supported = supported & (a_vector_dim % (ABlockTransferSrcScalarPerVector * (a_raw_vector_dim == 1 ? arg.k_batch_ : 1)) == 0);
+                supported = supported & (b_vector_dim % (BBlockTransferSrcScalarPerVector * (b_raw_vector_dim == 1 ? arg.k_batch_ : 1)) == 0);
             }
         }
 
