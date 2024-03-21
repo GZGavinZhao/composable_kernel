@@ -372,14 +372,6 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
 
         const auto e_grid_desc_m_n = MakeEGridDescriptor_M_N<ELayout, GemmSpec>(M, N, StrideE);
 
-#if 0
-        // check tile size
-        if(!(M % MPerBlock == 0 && N % NPerBlock == 0 && K % KPerBlock == 0))
-        {
-            return false;
-        }
-#endif
-
         // check gridwise gemm pipeline
         const auto num_k_loop = K / KPerBlock;
 

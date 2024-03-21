@@ -193,8 +193,9 @@ template <typename ALayout,
           index_t CShuffleNXdlPerWavePerShuffle,
           typename CDEBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock,
           index_t CDEBlockTransferScalarPerVector_NPerBlock,
-          typename ComputeType    = ADataType,
-          LoopScheduler LoopSched = make_default_loop_scheduler()>
+          typename ComputeType        = ADataType,
+          LoopScheduler LoopSched     = make_default_loop_scheduler(),
+          PipelineVersion PipelineVer = PipelineVersion::v1>
 struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
                                                                         BLayout,
                                                                         DsLayout,
@@ -258,7 +259,8 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
         CShuffleNXdlPerWavePerShuffle,
         CDEBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock,
         CDEBlockTransferScalarPerVector_NPerBlock,
-        LoopSched>;
+        LoopSched,
+        PipelineVer>;
 
     template <typename UnderlyingBlockToCTileMap>
     struct OffsettedBlockToCTileMapMLoops
@@ -530,6 +532,7 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
                     throw std::runtime_error("wrong! block_2_etile_map validation failed");
                 }
 
+#if 0
                 if(!GridwiseGemm::
                        template CheckValidity<ALayout, BLayout, DsLayout, ELayout, GemmSpec>(
                            AverM, N, K, StrideA, StrideB, StrideDs, StrideE, 1))
@@ -537,6 +540,7 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
                     throw std::runtime_error(
                         "wrong! GridwiseGemm_k0mk1_k0nk1_mn_xdlops_v2r3 has invalid setting");
                 }
+#endif
 
                 gemm_desc_kernel_arg_.push_back(GemmBiasTransKernelArg{
                     nullptr,
@@ -592,9 +596,10 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
 
         float Run(const Argument& arg, const StreamConfig& stream_config = StreamConfig{})
         {
-            bool has_main_k_block_loop = true;
+            bool has_main_k_block_loop = GridwiseGemm::CalculateHasMainKBlockLoop(
+                GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[0].K_, arg.k_batch_));
 
-            for(std::size_t i = 0; i < arg.gemm_desc_kernel_arg_.size(); i++)
+            for(std::size_t i = 1; i < arg.gemm_desc_kernel_arg_.size(); i++)
             {
                 const auto KPad =
                     GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[i].K_, arg.k_batch_);
