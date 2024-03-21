@@ -600,15 +600,16 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
             const auto KPad =
                 GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[0].K_, arg.k_batch_);
 
-            bool has_main_k_block_loop = GridwiseGemm::CalculateHasMainKBlockLoop(
-                KPad / arg.k_batch_);
+            bool has_main_k_block_loop =
+                GridwiseGemm::CalculateHasMainKBlockLoop(KPad / arg.k_batch_);
 
             for(std::size_t i = 1; i < arg.gemm_desc_kernel_arg_.size(); i++)
             {
                 const auto KPad_ =
                     GridwiseGemm::CalculateKPadded(arg.gemm_desc_kernel_arg_[i].K_, arg.k_batch_);
 
-                if(GridwiseGemm::CalculateHasMainKBlockLoop(KPad_ / arg.k_batch_) != has_main_k_block_loop)
+                if(GridwiseGemm::CalculateHasMainKBlockLoop(KPad_ / arg.k_batch_) !=
+                   has_main_k_block_loop)
                 {
                     throw std::runtime_error("wrong! not all gemm has_main_k_block_loop");
                 }
@@ -678,6 +679,12 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
             {
                 if(arg.k_batch_ > 1)
                 {
+                    const auto workspace_size =
+                        arg.group_count_ * arg.barrier_size_grp_ * sizeof(uint32_t);
+
+                    hip_check_error(hipMemsetAsync(
+                        arg.p_workspace_, 0, workspace_size, stream_config.stream_id_));
+
                     if(has_main_k_block_loop)
                     {
                         ave_time = launch_kernel(
@@ -737,13 +744,19 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
             const auto a_raw_vector_dim = ABlockTransferSrcVectorDim != 2 ? 1 : 0;
             const auto b_raw_vector_dim = BBlockTransferSrcVectorDim != 2 ? 1 : 0;
 
-            //for(index_t i = 0; i < arg.group_count_; ++i)
+            // for(index_t i = 0; i < arg.group_count_; ++i)
             {
                 const auto a_vector_dim = arg.a_mtx_mraw_kraw_[0].At(Number<a_raw_vector_dim>{});
                 const auto b_vector_dim = arg.b_mtx_nraw_kraw_[0].At(Number<b_raw_vector_dim>{});
 
-                supported = supported & (a_vector_dim % (ABlockTransferSrcScalarPerVector * (a_raw_vector_dim == 1 ? arg.k_batch_ : 1)) == 0);
-                supported = supported & (b_vector_dim % (BBlockTransferSrcScalarPerVector * (b_raw_vector_dim == 1 ? arg.k_batch_ : 1)) == 0);
+                supported =
+                    supported & (a_vector_dim % (ABlockTransferSrcScalarPerVector *
+                                                 (a_raw_vector_dim == 1 ? arg.k_batch_ : 1)) ==
+                                 0);
+                supported =
+                    supported & (b_vector_dim % (BBlockTransferSrcScalarPerVector *
+                                                 (b_raw_vector_dim == 1 ? arg.k_batch_ : 1)) ==
+                                 0);
             }
         }
 

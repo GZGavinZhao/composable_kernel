@@ -122,11 +122,11 @@ void add_device_grouped_gemm_xdl_fixed_nk_f16_f16_f16_mk_nk_mn_instances(
             ck::PipelineVersion::v1,
             ck::LoopScheduler::Default>{});
 
-    //add_device_operation_instances(
-        //instances,
-        //device_grouped_gemm_xdl_fixed_nk_f16_f16_f16_mk_nk_mn_irregular_instances<
-            //ck::PipelineVersion::v2,
-            //ck::LoopScheduler::Default>{});
+    // add_device_operation_instances(
+    // instances,
+    // device_grouped_gemm_xdl_fixed_nk_f16_f16_f16_mk_nk_mn_irregular_instances<
+    // ck::PipelineVersion::v2,
+    // ck::LoopScheduler::Default>{});
 #endif
 }
 

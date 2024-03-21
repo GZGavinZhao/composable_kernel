@@ -20,6 +20,26 @@
 
 namespace ck {
 
+__device__ void atomic_store_b32(uint32_t* addr, uint32_t value, uint32_t offset = 0)
+{
+    // __hip_atomic_store() does not work
+    // currently intrinsic doesn't produce sc1 bit for gfx94*
+//#if(defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__))
+#if 1
+    asm volatile("global_store_dword %0, %1, %2 sc0 sc1\n"
+                 "s_waitcnt vmcnt(0)"
+                 :
+                 : "v"(static_cast<uint32_t>(offset * sizeof(uint32_t))), "v"(value), "s"(addr)
+                 : "memory");
+#else
+    asm volatile("global_store_dword %0, %1, %2 glc\n"
+                 "s_waitcnt vmcnt(0)"
+                 :
+                 : "v"(static_cast<uint32_t>(offset * sizeof(uint32_t))), "v"(value), "s"(addr)
+                 : "memory");
+#endif
+}
+
 // GEMM:
 //   input : A[M, K]
 //   input : B[N, K]
@@ -70,7 +90,7 @@ template <typename ADataType,
           index_t CShuffleNXdlPerWavePerShuffle,
           typename CDEBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock,
           index_t CDEShuffleBlockTransferScalarPerVector_NPerBlock,
-          LoopScheduler LoopSched = make_default_loop_scheduler(),
+          LoopScheduler LoopSched     = make_default_loop_scheduler(),
           PipelineVersion PipelineVer = PipelineVersion::v1>
 struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
 {
@@ -651,7 +671,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
                               e_grid_desc_mblock_mperblock_nblock_nperblock,
                               e_grid_buf);
 
-            __syncthreads();
+            __builtin_amdgcn_s_barrier();
 
             if(threadIdx.x == 0)
             {
@@ -708,7 +728,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
                 while(__atomic_load_n(barrier_count_finished, __ATOMIC_RELAXED) == 0) {}
             }
 
-            __syncthreads();
+            __builtin_amdgcn_s_barrier();
 
             static_assert(MXdlPerWave % CShuffleMXdlPerWavePerShuffle == 0 &&
                               NXdlPerWave % CShuffleNXdlPerWavePerShuffle == 0,
@@ -949,7 +969,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
 
                 if(k_id_finished_t == KBatch)
                 {
-                    *barrier_count_finished = 0;
+                    atomic_store_b32(barrier_count_finished, 0);
                 }
             }
         }
