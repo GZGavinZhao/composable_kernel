@@ -18,6 +18,8 @@
 #include "ck/tensor_operation/gpu/device/gemm_specialization.hpp"
 #include "ck/tensor_operation/gpu/device/matrix_padder.hpp"
 
+#define ZEROING 0
+
 namespace ck {
 
 __device__ void atomic_store_b32(uint32_t* addr, uint32_t value, uint32_t offset = 0)
@@ -625,7 +627,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
             KPack,
             LoopSched>();
 
-#if 1
+#if ZEROING 
         if(block_work_idx[I0] == 0)
         {
             const index_t nThreadSize = CDEShuffleBlockTransferScalarPerVector_NPerBlock;
@@ -678,6 +680,9 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
                 atomicAdd(barrier_count_finished, 1);
             }
         }
+#else
+        ignore = KBatch;
+        ignore = barrier_count_finished; 
 #endif
 
         auto c_thread_buf = blockwise_gemm.GetCThreadBuffer();
@@ -723,12 +728,14 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
 
         // shuffle C and write out
         {
+#if ZEROING
             if(threadIdx.x == 0)
             {
                 while(__atomic_load_n(barrier_count_finished, __ATOMIC_RELAXED) == 0) {}
             }
 
             __builtin_amdgcn_s_barrier();
+#endif
 
             static_assert(MXdlPerWave % CShuffleMXdlPerWavePerShuffle == 0 &&
                               NXdlPerWave % CShuffleNXdlPerWavePerShuffle == 0,
@@ -963,6 +970,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
                 }
             });
 
+#if ZEROING
             if(threadIdx.x == 0)
             {
                 index_t k_id_finished_t = atomicAdd(barrier_count_finished, 1);
@@ -972,6 +980,7 @@ struct GridwiseGemmMultipleD_xdl_splitk_cshuffle
                     atomic_store_b32(barrier_count_finished, 0);
                 }
             }
+#endif
         }
     }
 

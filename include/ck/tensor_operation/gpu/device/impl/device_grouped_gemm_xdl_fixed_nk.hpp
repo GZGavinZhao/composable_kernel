@@ -679,11 +679,11 @@ struct DeviceGroupedGemm_Xdl_Fixed_NK : public DeviceGroupedGemmFixedNK<ALayout,
             {
                 if(arg.k_batch_ > 1)
                 {
-                    const auto workspace_size =
-                        arg.group_count_ * arg.barrier_size_grp_ * sizeof(uint32_t);
+                    //const auto workspace_size =
+                        //arg.group_count_ * arg.barrier_size_grp_ * sizeof(uint32_t);
 
-                    hip_check_error(hipMemsetAsync(
-                        arg.p_workspace_, 0, workspace_size, stream_config.stream_id_));
+                    //hip_check_error(hipMemsetAsync(
+                        //arg.p_workspace_, 0, workspace_size, stream_config.stream_id_));
 
                     if(has_main_k_block_loop)
                     {
