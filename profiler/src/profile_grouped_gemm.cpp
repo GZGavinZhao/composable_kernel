@@ -92,14 +92,14 @@ int profile_grouped_gemm(int argc, char* argv[])
     const auto StrideAs = argToIntArray(argv[11]);
     const auto StrideBs = argToIntArray(argv[12]);
     const auto StrideCs = argToIntArray(argv[13]);
-    const int kbatch    = argc == 15 ? std::stoi(argv[14]) : 1;
+    const int kbatch    = argc > 14 ? std::stoi(argv[14]) : 1;
 
     int n_warmup = 1;
     int n_iter   = 10;
     if(argc == 17)
     {
-        n_warmup = std::stoi(argv[16]);
-        n_iter   = std::stoi(argv[17]);
+        n_warmup = std::stoi(argv[15]);
+        n_iter   = std::stoi(argv[16]);
     }
 
 #ifdef CK_ENABLE_FP16

@@ -251,7 +251,7 @@ bool profile_grouped_gemm_fixed_nk_impl(int do_verification,
 
         std::string gemm_name = gemm_ptr->GetTypeString();
 
-        std::vector<int> kbatch_list = {1, 2, 4, 8, 12, 16, 20, 24, 32, 48, 64};
+        std::vector<int> kbatch_list = {1, 2, 4, 8, 12, 16, 19, 20, 32, 38};
 
         if(kbatch > 0)
         {

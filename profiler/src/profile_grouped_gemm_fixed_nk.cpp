@@ -83,7 +83,7 @@ int profile_grouped_gemm_fixed_nk(int argc, char* argv[])
     const auto StrideAs = argToIntArray(argv[11]);
     const auto StrideBs = argToIntArray(argv[12]);
     const auto StrideCs = argToIntArray(argv[13]);
-    const int kbatch    = argc == 15 ? std::stoi(argv[14]) : 1;
+    const int kbatch    = argc > 14 ? std::stoi(argv[14]) : 1;
 
     using F32  = float;
     using F16  = ck::half_t;
@@ -95,8 +95,8 @@ int profile_grouped_gemm_fixed_nk(int argc, char* argv[])
     int n_iter   = 10;
     if(argc == 17)
     {
-        n_warmup = std::stoi(argv[16]);
-        n_iter   = std::stoi(argv[17]);
+        n_warmup = std::stoi(argv[15]);
+        n_iter   = std::stoi(argv[16]);
     }
 
 #if defined(CK_ENABLE_BF16) && defined(CK_ENABLE_INT8)
