@@ -5,7 +5,9 @@ add_library(utility STATIC
 )
 
 add_library(composable_kernel::utility ALIAS utility)
-set_target_properties(utility PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(utility PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  OUTPUT_NAME ck_utility)
 target_compile_options(utility PRIVATE ${CMAKE_COMPILER_WARNINGS})
 target_include_directories(utility PUBLIC
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ck>"
