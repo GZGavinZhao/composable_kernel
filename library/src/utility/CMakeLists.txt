@@ -15,6 +15,8 @@ if(WIN32)
     target_compile_definitions(utility PUBLIC NOMINMAX)
 endif()
 
+set_target_properties(utility PROPERTIES OUTPUT_NAME ck_utility)
+
 rocm_install(
     TARGETS utility
     EXPORT utilityTargets
