@@ -158,3 +158,5 @@ RUN sh -c "rm -rf amdgpu-install*"
 
 #ENV HIP_CLANG_PATH='/llvm-project/build/bin'
 #RUN sh -c "echo HIP_CLANG_PATH = '$HIP_CLANG_PATH'"
+
+RUN ./test.sh
