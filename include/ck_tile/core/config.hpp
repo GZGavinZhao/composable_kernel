@@ -10,6 +10,9 @@
 #if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
 #define __gfx94__
 #endif
+#if defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__)
+#define __gfx101__
+#endif
 #if defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
     defined(__gfx1034__) || defined(__gfx1035__) || defined(__gfx1036__)
 #define __gfx103__
@@ -177,7 +180,7 @@
 #elif defined(__gfx803__) || defined(__gfx900__) || defined(__gfx906__) || \
     defined(__gfx9__) // for GPU code
 #define CK_TILE_BUFFER_RESOURCE_3RD_DWORD 0x00020000
-#elif defined(__gfx103__) // for GPU code
+#elif defined(__gfx101__) || defined(__gfx103__) // for GPU code
 #define CK_TILE_BUFFER_RESOURCE_3RD_DWORD 0x31014000
 #elif defined(__gfx11__) || defined(__gfx12__) // for GPU code
 #define CK_TILE_BUFFER_RESOURCE_3RD_DWORD 0x31004000
