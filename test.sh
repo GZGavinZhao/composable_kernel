@@ -16,4 +16,4 @@ cmake -B build -GNinja -S . -L \
     -DCMAKE_BUILD_TYPE=Debug \
     -DGPU_TARGETS="$AMDGPU_TARGETS"
 
-ninja -C build -j tests -v
+ninja -C build tests

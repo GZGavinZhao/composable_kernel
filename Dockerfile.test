@@ -1,3 +1,6 @@
 FROM rocm/composable_kernel:ck_ub22.04_rocm6.3
 
+COPY . /work
+WORKDIR /work
+
 RUN ./test.sh
