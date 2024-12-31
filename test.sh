@@ -8,7 +8,7 @@ export NINJA_STATUS="[%r jobs | %P %f/%t @ %o/s | %w | ETA %W ] "
 # Replace `gfx1012` with your desired GPU target.
 # WARNING: only fill in 1 GPU target, otherwise expect your build time to
 # double/triple!
-export AMDGPU_TARGETS="gfx1012"
+export AMDGPU_TARGETS="gfx1011"
 
 cmake -B build -GNinja -S . -L \
 	-DCMAKE_PREFIX_PATH=/opt/rocm \
